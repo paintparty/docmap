@@ -1,0 +1,21 @@
+{:tasks {
+        ;;  quickdoc  {:doc        "Invoke quickdoc"
+        ;;             :extra-deps {io.github.borkdude/quickdoc {:git/tag "v0.2.5"
+        ;;                                                       :git/sha "25784ca"}}
+        ;;             :task       (exec 'quickdoc.api/quickdoc)
+        ;;             :exec-args  {:git/branch   "0.10.0v2"
+        ;;                          :github/repo  "https://github.com/paintparty/bling"
+        ;;                          :source-paths [
+        ;;                                             ;; "src/bling/core.cljc"
+        ;;                                         "src/bling/banner.cljc"
+        ;;                                         "src/bling/explain.cljc"
+        ;;                                         ]}}
+         
+         docstring {:doc        "Invoke docstring/docstring to generate docstrings from function metadata maps"
+                    :extra-deps {io.github.paintparty/docstring {:local/root "."}
+                                 io.github.paintparty/bling     {:local/root "../bling"}
+                                 io.github.paintparty/fireworks {:local/root "../fireworks"}
+                                 }
+                    :task       (exec 'docstring.api/docstring)
+                    :exec-args  {:source-paths         ["dev/docstring/friends.cljc"]
+                                 :print-report-banner? true}}}}
