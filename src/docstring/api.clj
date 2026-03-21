@@ -231,12 +231,11 @@
    Returns a string intended to serve as the function's docstring.
    
    Resulting docstrings are optimized for consumption by
-   [quickdoc](https://github.com/borkdude/quickdoc).
-   "
+   [quickdoc](https://github.com/borkdude/quickdoc)."
   [{:keys [:docstring/template] :as m}]
   (let [template (or template [:tldr :desc :examples :options])
         sections (reduce (partial docsgen-section m) [] template)]
-    (-> (string/join "\n\n" sections)
+    (-> (string/join "\n\n" (remove nil? sections))
         (string/split #"\n")
         (->> (map-indexed (fn [i x] (str (if (zero? i) "  " "   ") x)))
              join-lines)
@@ -278,14 +277,18 @@
     (let [fn-name  (z/sexpr (-> zloc z/down z/right))
           fqfn-sym (symbol (str ns-sym "/" fn-name))]
       (if-not (contains? exclude fqfn-sym)
-        (let [a                               (-> zloc z/down z/right z/right z/sexpr)
+        (let [a                               
+              (-> zloc z/down z/right z/right z/sexpr)
 
-              b                               (-> zloc z/down z/right z/right z/right z/sexpr)
+              b                               
+              (-> zloc z/down z/right z/right z/right z/sexpr)
 
-              existing-docstring              (when (string? a) a)
+              existing-docstring              
+              (when (string? a) a)
 
               {:keys [desc]
-               :as   fn-metadata} (if existing-docstring b a)]
+               :as   fn-metadata} 
+              (if existing-docstring b a)]
 
           (if desc
             (let [new-docstring  (metadata-map->docstring fn-metadata)
@@ -294,7 +297,7 @@
 
                   ;; TODO this seems to not detect if there is an escaped backslash in docstring
                   ;; Meaning false positive and reports that docstring was changed, even if it was changed to same thing
-
+                  
                   no-change?     (= new-docstring* existing-docstring)
                   updated-zloc   (insert-docstring (z/down zloc)
                                                    existing-docstring
@@ -397,6 +400,7 @@
           z/sexpr))
 
 
+;; TODO - Don't process a defined if it is ignored with #_
 ;; TODO - Warn if malformed entry in fn metadata map e.g. `:form` vs `:forms`
 ;; TODO - Warn if example supplied as string ends with "```, but its not on its own line" 
 ;; TODO - Make sure this works with non-top level defs in reader conds
@@ -487,3 +491,6 @@
         (print-report updated-contents opts))
 
       source-paths)))
+
+
+;; TODO - detect duplicate options
