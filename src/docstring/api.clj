@@ -93,7 +93,7 @@
   (let [{:keys [desc]
          :as   m}             (nth options 1 nil)
         all-the-options       (if m (drop 2 options) (rest options))
-        options-section-label (str (or desc "All the options") ":")]
+        options-section-label (str (or desc "Options") ":")]
     [options-section-label
      (reduce (fn [s [option m pred]]
                (str s
