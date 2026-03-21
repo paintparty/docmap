@@ -13,6 +13,14 @@
             [malli.core :as malli]
             [me.flowthing.pp :as pp]))
 
+(defn  when->
+  "If `(= (pred x) true)`, returns x, otherwise nil.
+   Useful in a `clojure.core/some->` threading form."
+  [x pred]
+  (when (or (true? (pred x))
+            (when (set? pred) (contains? pred x)))
+    x))
+
 (defn- join-lines
   ([coll]
    (join-lines "\n" coll))
@@ -205,13 +213,17 @@
   [{:keys [tldr desc examples options]} acc x]
   (cond
     (= x :tldr)
-    (conj acc (desc->str tldr))
+    (or (some->> tldr desc->str (conj acc))
+        acc)
 
     (= x :desc)
-    (conj acc (desc->str desc))
+    (or (some->> desc desc->str (conj acc))
+        acc)
 
     (= x :examples)
-    (conj acc (string/join "\n\n" (keep #(example->md %) examples)))
+    (if (seq examples)
+      (conj acc (string/join "\n\n" (keep #(example->md %) examples)))
+      acc)
 
     (= x :options)
     (if (seq options)
@@ -234,8 +246,10 @@
    [quickdoc](https://github.com/borkdude/quickdoc)."
   [{:keys [:docstring/template] :as m}]
   (let [template (or template [:tldr :desc :examples :options])
-        sections (reduce (partial docsgen-section m) [] template)]
-    (-> (string/join "\n\n" (remove nil? sections))
+        sections (reduce (partial docsgen-section m) 
+                         []
+                         template)]
+    (-> (string/join "\n\n" sections)
         (string/split #"\n")
         (->> (map-indexed (fn [i x] (str (if (zero? i) "  " "   ") x)))
              join-lines)

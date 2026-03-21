@@ -17,5 +17,12 @@
                                  io.github.paintparty/fireworks {:local/root "../fireworks"}
                                  }
                     :task       (exec 'docstring.api/docstring)
-                    :exec-args  {:source-paths         ["dev/docstring/friends.cljc"]
+                    :exec-args  {:source-paths         [
+                                                        ;; friends.cljc is the reference example, used for readme
+                                                        ;; your probably want to comment out during dev with sanbox.cljc
+                                                        ;; "dev/docstring/friends.cljc"
+
+                                                        ;; sandbox.cljc is for dev of docstring itself
+                                                        "dev/docstring/sandbox.cljc"
+                                                        ]
                                  :print-report-banner? true}}}}
