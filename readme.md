@@ -62,7 +62,7 @@ Below is a contrived example function with a metadata map.
 A few notes on this example:
 - The `:forms` entry in an `:examples` map must be a quoted vector of vectors.
 This allows you to provide one or more example calls (and optional results) for
-each example "group". Each child vector should contain an example function call
+each example. Each child vector should contain an example function call
 as the first element, with an optional second element being the resulting value
 of the call.
 
@@ -78,9 +78,9 @@ generated docstring.
 ````Clojure 
 (defn friends
   {:tldr               "Creates one-line ASCII moji. Featuring Shruggie and \"friends\"."
-   :desc               "This function is a contrived example to use as a test function for
-                        the docstring lib. This is the :`desc` entry, which can be a multi-line
-                        string. The `docstring` engine will sort out the indentation for you.
+   :desc               "This function is a contrived guinea pig, for dev on the lib itself.
+                        This is the `:desc` entry, which can be a multi-line string.
+                        `docstring.api/docstring` sorts out the indentation details.
                         You can use things like quoted literal newline chars: \"\\n\"." 
 
    :examples           [{:desc  "Basic example"

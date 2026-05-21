@@ -5,12 +5,12 @@
             [rewrite-clj.node :as n]
             [cljfmt.core]
             [fireworks.core :refer [? !? ?> !?>]]
-            [bling.banner :refer [banner]]
-            [bling.core :refer [callout bling print-bling]]
-            [bling.hifi :refer [hifi]]
-            [bling.explain :refer [explain-malli]]
-            [bling.fonts.miniwi :refer [miniwi]]
-            [malli.core :as malli]
+            ;; [bling.banner :refer [banner]]
+            ;; [bling.core :refer [callout bling print-bling]]
+            ;; [bling.hifi :refer [hifi]]
+            ;; [bling.explain :refer [explain-malli]]
+            ;; [bling.fonts.miniwi :refer [miniwi]]
+            ;; [malli.core :as malli]
             [me.flowthing.pp :as pp]))
 
 (defn  when->
@@ -124,27 +124,6 @@
     (second x)
     x))
 
-;; For `example->md` -----------------------------------------------------------
-
-;; TODO - Add option for processing (:form example), if multiline string with comments etc
-
-;; {:examples [{:form "(callout {:type                   :error
-;;                    |          ;; :colorway            :purple           ; <- any bling palette color, overrides :type
-;;                    |          ;; :label               \"My label\"      ; overrides label assigned by :theme
-;;                    |          :side-label             \"My side label\" ; must have a :label if you want a :side-label        
-;;                    |          :theme                  :sideline         ; :sideline :sideline-bold :minimal :gutter
-;;                    |          :label-theme            :minimal          ; :minimal :marquee
-;;                    |          ;; :padding-top         0                 
-;;                    |          ;; :padding-left        2                 
-;;                    |          ;; :padding-bottom      0                 
-;;                    |          ;; :padding-right       0                 
-;;                    |          ;; :margin-top          1                 
-;;                    |          ;; :margin-botom        0                 
-;;                    |          ;; :margin-left         0                 
-;;                    |          ;; :data?               true              ; <- just returns string, no printing
-;;                    |          })"
-;;                 }]}
-
 
 ;; (println (string/replace
 ;;           (string/join "\n"
@@ -164,48 +143,62 @@
 (defn- escape-escaped-backslashes [s]
   (string/replace s #"\\" "\\\\\\\\"))
 
+(defn- example-form->str [forms]
+  (string/join 
+   "\n"
+   (mapv (fn [[form result :as vc]]
+          (let [result 
+                (if (= 2 (count vc)) 
+                  result
+                  ::result-unsupplied)]
+            (str (-> form
+                     (pp/pprint {:max-width 70})
+                     with-out-str)
+                  (when-not (= result ::result-unsupplied)
+                    (str ";; =>\n"
+                         (-> result
+                             (pp/pprint {:max-width 24})
+                             with-out-str))))))
+         (dequote-vec forms))))
+
 (defn- example->md [example]
   (let [{:keys [desc forms]} example
         desc+forms?         (boolean (and desc forms))
         no-doc?             (-> example meta :no-doc)]
-
     (!? {:example    example
          :no-doc?    no-doc?
          :desc+form? desc+forms?})
-
     (when-not no-doc?
       (when desc+forms?
         (str (desc->str desc)
              "\n"
              "```clojure\n"
              (if (string? forms)
-
-               ;; Example form (and maybe result) supplied as a potentially multi-line string
+               ;; Example form (and maybe result) supplied as a potentially
+               ;; multi-line string
+               ;; E.g.
+               ;; "(callout {:type        :error   ; :warning, :info
+               ;; |          :label-theme :simple  ; :simple :marquee
+               ;; |         }
+               ;; |         (bling [:bold (str \"Line 1\" \"\\n\" \"Line 2\")]))"
                (-> (string/join "\n" (string/split forms #"\n *\|"))
                    escape-escaped-double-quote
                    escape-escaped-backslashes)
 
-               ;; Example form(s) (and maybe corresponding result(s)) supplied as a vector or 1 or 2 element vectors
+               ;; Example form(s) (and maybe corresponding result(s)) supplied
+               ;; as a vector or 1 or 2 element vectors
                ;; E.g.
                ;; [[(my-adder 1 2) 3]
                ;;  [(my-adder 1 2 3) 6]]
-               (string/join 
-                "\n"
-                (mapv (fn [[form result :as vc]]
-                        (let [result 
-                              (if (= 2 (count vc)) 
-                                result
-                                ::result-unsupplied)]
-                          (str (-> form
-                                   (pp/pprint {:max-width 70})
-                                   with-out-str)
-                               (when-not (= result ::result-unsupplied)
-                                 (str ";; =>\n"
-                                      (-> result
-                                          (pp/pprint {:max-width 24})
-                                          with-out-str))))))
-                      (dequote-vec forms))))
-             "```")))))
+               (-> forms
+                   example-form->str 
+                   (string/replace #"\n$" "")))
+             "\n```")))))
+
+(defn normalize-multi-newlines [s]
+  (string/replace s
+                  #"(\n+) +(\S)"
+                  #(str (nth % 1 nil) (nth % 2 nil))))
 
 (defn- docsgen-section
   "Reducing function to generate a section of the docstring based on the
@@ -213,11 +206,16 @@
   [{:keys [tldr desc examples options]} acc x]
   (cond
     (= x :tldr)
-    (or (some->> tldr desc->str (conj acc))
+    (or (some->> tldr
+                 desc->str
+                 (conj acc))
         acc)
 
     (= x :desc)
-    (or (some->> desc desc->str (conj acc))
+    (or (some->> desc
+                 desc->str
+                 normalize-multi-newlines
+                 (conj acc))
         acc)
 
     (= x :examples)
@@ -245,10 +243,10 @@
    Resulting docstrings are optimized for consumption by
    [quickdoc](https://github.com/borkdude/quickdoc)."
   [{:keys [:docstring/template] :as m}]
-  (let [template (or template [:tldr :desc :examples :options])
-        sections (reduce (partial docsgen-section m) 
-                         []
-                         template)]
+  (let [sections (->> (or template [:tldr :desc :examples :options])
+                      (reduce (partial docsgen-section m) [])
+                      #_(map normalize-multi-newlines))]
+
     (-> (string/join "\n\n" sections)
         (string/split #"\n")
         (->> (map-indexed (fn [i x] (str (if (zero? i) "  " "   ") x)))
@@ -339,8 +337,8 @@
         (recur (z/next new-loc) new-stats)))))
 
 
-(def title-in-ascii-quotes
-  (bling [:white.italic ""]))
+;; (def title-in-ascii-quotes
+;;   (bling [:white.italic ""]))
 
 (defn- print-report [coll opts]
   #_(println (banner {:text            "DOCSTRING"
@@ -348,62 +346,83 @@
                       :gradient-colors [:green :blue]
                       :letter-spacing  2}))
 
-  (when (:print-report-banner? opts)
-    (print-bling
-     (let [ascii-quote-style :subtle]
-       [ascii-quote-style
-        (str "
-      0      0            0000   0000
-    00     00            000000 000000
-  0000   0000          "  (bling [ascii-quote-style "   0000   0000
- 000000 000000            00     00
-  0000   0000            0      0   
- "]))])))
+;;   (when (:print-report-banner? opts)
+;;     (print-bling
+;;      (let [ascii-quote-style :subtle]
+;;        [ascii-quote-style
+;;         (str "
+;;       0      0            0000   0000
+;;     00     00            000000 000000
+;;   0000   0000          "  (bling [ascii-quote-style "   0000   0000
+;;  000000 000000            00     00
+;;   0000   0000            0      0   
+;;  "]))])))
 
 
-  (callout {:colorway       :subtle
-            :label          (bling [:subtle.italic "Docstring generation options"])
-            :label-margin-left 1
-            ;; :padding-top    1
-            ;; :padding-bottom 0
-            :padding-left   4
-            :margin-top     1
-            :margin-left    0
-            :theme          :sideline
-            :border-style   :none
-            }
-           (bling.hifi/hifi (dissoc opts :print-report? :print-report-banner?)
-                            {:theme     "Universal Neutral"
-                             :truncate? false}))
+  ;; (callout {:colorway       :subtle
+  ;;           :label          (bling [:subtle.italic "Docstring generation options"])
+  ;;           :label-margin-left 1
+  ;;           ;; :padding-top    1
+  ;;           ;; :padding-bottom 0
+  ;;           :padding-left   4
+  ;;           :margin-top     1
+  ;;           :margin-left    0
+  ;;           :theme          :sideline
+  ;;           :border-style   :none
+  ;;           }
+  ;;          (bling.hifi/hifi (dissoc opts :print-report? :print-report-banner?)
+  ;;                           {:theme     "Universal Neutral"
+  ;;                            :truncate? false}))
 
-  (callout {:colorway       :subtle
-            :label          (bling [:subtle.italic "Docstring generation report"])
-            :label-margin-left 0
-            ;; :padding-top    1
-            ;; :padding-bottom 0
-            :padding-left   4
-            :margin-top     1
-            :margin-left    0
-            :theme          :sideline
-            :border-style   :none
-            }
+  ;; (callout {:colorway       :subtle
+  ;;           :label          (bling [:subtle.italic "Docstring generation report"])
+  ;;           :label-margin-left 0
+  ;;           ;; :padding-top    1
+  ;;           ;; :padding-bottom 0
+  ;;           :padding-left   4
+  ;;           :margin-top     1
+  ;;           :margin-left    0
+  ;;           :theme          :sideline
+  ;;           :border-style   :none
+  ;;           }
+  ;;          (if (some #(-> % :stats :updated seq) coll)
+  ;;            (string/join
+  ;;             "\n\n"
+  ;;             (for [{:keys             [source-path]
+  ;;                    {:keys [updated]} :stats}
+  ;;                   coll]
+  ;;               (str (bling [:blue source-path] "\n")
+  ;;                    (when (seq updated)
+  ;;                      (let [n      (count updated)
+  ;;                            suffix (when (> n 1) "s")
+  ;;                            s      (bling [:subtle (str "  Updated " n " docstring" suffix ":")])]
+  ;;                        (str s
+  ;;                             "\n"
+  ;;                             (string/join "\n"
+  ;;                                          (for [fn-name updated]
+  ;;                                            (str "  - " (bling [:green fn-name])))) ))))))
+  ;;            "No docstrings to update."))
+
+
+  (println 
            (if (some #(-> % :stats :updated seq) coll)
              (string/join
               "\n\n"
               (for [{:keys             [source-path]
                      {:keys [updated]} :stats}
                     coll]
-                (str (bling [:blue source-path] "\n")
+                (str source-path
                      (when (seq updated)
                        (let [n      (count updated)
                              suffix (when (> n 1) "s")
-                             s      (bling [:subtle (str "  Updated " n " docstring" suffix ":")])]
+                             s      (str "  Updated " n " docstring" suffix ":")]
                          (str s
                               "\n"
                               (string/join "\n"
                                            (for [fn-name updated]
-                                             (str "  - " (bling [:green fn-name])))) ))))))
-             "No docstrings to update.")))
+                                             (str "  - " fn-name))) ))))))
+             "No docstrings to update."))
+             )
 
 (defn first-ns-form [zloc]
   (some-> zloc
@@ -455,8 +474,9 @@
                                :default  true}
               :map]]}
   [opts]
-  (if-not (malli/validate (-> docstring var meta :options) opts)
-    (explain-malli (-> docstring var meta :options)
+  (if-not true #_(malli/validate (-> docstring var meta :options) opts)
+    (println "something went wrong")
+    #_(explain-malli (-> docstring var meta :options)
                    opts
                    {:file-info-str "docstring.api"
                     :preamble-section-label "Message:"
@@ -508,3 +528,11 @@
 
 
 ;; TODO - detect duplicate options
+;; debug with-ascii-underline - maybe a quickdoc issue?
+;; can you ref a local var for options vector?
+
+#_(into [:enum] 
+    (reduce (fn [vc kw]
+              (conj vc kw (name kw)))
+            []
+            [:one :two :three]))
