@@ -1,11 +1,11 @@
-(ns docstring.friends)
+(ns docmap.friends)
 
 (defn friends
   "Creates one-line ASCII moji. Featuring Shruggie and \"friends\".
    
    This function is a contrived example to use as a test function for
-   the docstring lib. This is the :`desc` entry, which can be a multi-line
-   string. The `docstring` engine will sort out the indentation for you.
+   the docmap lib. This is the :`desc` entry, which can be a multi-line
+   string. The `docmap` engine will sort out the indentation for you.
    You can use things like quoted literal newline chars: \"\n\".
    
    Basic example
@@ -73,9 +73,11 @@
   {:tldr     "Creates one-line ASCII moji. Featuring Shruggie and \"friends\"."
 
    :desc     "This function is a contrived example to use as a test function for
-              the docstring lib. This is the :`desc` entry, which can be a multi-line
-              string. The `docstring` engine will sort out the indentation for you.
-              You can use things like quoted literal newline chars: \"\\n\"."
+              the docmap lib. The paragraph that you are reading
+              right now is generated from the :`desc` entry, which can be a
+              multi-line string. The `docmap.api/docstring` function will sort out the
+              indentation for you. You can use things like quoted literal
+              newline chars: \"\\n\"."
 
    :examples [{:desc  "Basic example"
                :forms '[[(friends)]]}

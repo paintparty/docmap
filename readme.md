@@ -1,4 +1,4 @@
-# docstring
+# docmap
 
 A tool to generate Clojure docstrings from function metadata maps.
 
@@ -14,7 +14,7 @@ A tool to generate Clojure docstrings from function metadata maps.
 
 ## How
 
-Just give your function a metadata map. **`docstring`** looks for the following entries:
+Just give your function a metadata map. **`docmap`** looks for the following entries:
 
 <br>
 
@@ -26,8 +26,7 @@ your `:desc` entry is brief, there is no need to provide a `:tldr`
 <br>
 
 **`:desc`** <br>
-A description of your function as a (potentially) multi-line string. Do not
-include examples or options, use the `:examples` or `:options` entries for those.
+A description of your function. This can be a single line, or a multi-line string. Do ***not*** include examples or options, use the `:examples` or `:options` entries for those.
 
 
 <br>
@@ -40,18 +39,19 @@ A vector of maps with the following entries:
 <br>
 
 **`:options`** <br>
-A schema for a map of options, in [Malli](https://github.com/metosin/malli) syntax. Suitable when your function takes an options map for one of its args.
+A schema for a map of options, in [Malli](https://github.com/metosin/malli) syntax. Suitable when one (and only one) of your function args is an options map.
+Alternatively, you can use a `:schema` entry
 
 <br>
 
-<!-- **`:schema`**<br>
-A Malli schema of function args. This will document the args and return type. This will override the `:options` entry, so choose one or the other.
+**`:schema`**<br>
+A [Malli function schema](https://github.com/metosin/malli/blob/master/docs/function-schemas.md#function-schemas-1). This will document the args and return type. This will override the `:options` entry, so choose one or the other.
 
-<br> -->
+<br>
 
 > [!NOTE]
 > The use of Malli syntax here is a just a convention i.e. your project does not
-> need to use Malli in order for `docstring` to work.
+> need to use Malli in order for `docmap` to work.
 
 <br>
 
@@ -80,7 +80,7 @@ generated docstring.
   {:tldr               "Creates one-line ASCII moji. Featuring Shruggie and \"friends\"."
    :desc               "This function is a contrived guinea pig, for dev on the lib itself.
                         This is the `:desc` entry, which can be a multi-line string.
-                        `docstring.api/docstring` sorts out the indentation details.
+                        `docmap.api/docstring` sorts out the indentation details.
                         You can use things like quoted literal newline chars: \"\\n\"." 
 
    :examples           [{:desc  "Basic example"
@@ -151,7 +151,7 @@ generated docstring.
 ````
 <br>
 
-[Run `docstring` as a `bb` task](#usage-with-babashka), and it will format a docstring from your
+[Run `docmap` as a `bb` task](#usage-with-babashka), and it will format a docstring from your
 function's metadata map and use [`rewrite-clj`](https://github.com/clj-commons/rewrite-clj) to update the function in your file with the new docstring:
              
 
@@ -159,8 +159,8 @@ function's metadata map and use [`rewrite-clj`](https://github.com/clj-commons/r
   "Creates one-line ASCII moji. Featuring Shruggie and \"friends\".
    
    This function is a contrived example to use as a test function for
-   the docstring lib. This is the :`desc` entry, which can be a multi-line
-   string. The `docstring` engine will sort out the indentation for you.
+   the docmap lib. This is the :`desc` entry, which can be a multi-line
+   string. The `docmap` engine will sort out the indentation for you.
    You can use things like quoted literal newline chars: \"\n\".
    
    Basic example
@@ -228,13 +228,13 @@ function's metadata map and use [`rewrite-clj`](https://github.com/clj-commons/r
 ````
 
 ## Templating
-For templating, you can provide a `:docstring/template` entry in your function's metadata map. This is useful for omitting certain things or specifying a custom order for the sections. For instance, you might want your `:examples` section to be above the `:desc` section.
+For templating, you can provide a `:docmap/template` entry in your function's metadata map. This is useful for omitting certain things or specifying a custom order for the sections. For instance, you might want your `:examples` section to be above the `:desc` section.
 
 In the example below, we are composing the docstring with the examples first, and using only the examples listed in the `:examples` vector
 
 ```Clojure
 {...
- :docstring/template [[:examples
+ :docmap/template [[:examples
                        "Multiple basic examples"
                        "Example with prefix and `:flipping` moji"]
                       :desc
@@ -246,16 +246,16 @@ In the example below, we are composing the docstring with the examples first, an
 ## Usage with Babashka
 Use as a [bb task](https://book.babashka.org/#tasks) by adding to your `:tasks` entry in a `bb.edn` file at your project's root:
 ```Clojure
-{:tasks {docstring {:doc        "Invoke docstring "
-                    :extra-deps {io.github.paintparty/docstring {:local/root "./../docstring/"}}
-                    :task       (exec 'docstring.api/docstring)
+{:tasks {docstring {:doc        "Invoke docmap.api/docstring "
+                    :extra-deps {io.github.paintparty/docmap {:local/root "./../docmap/"}}
+                    :task       (exec 'docmap.api/docstring)
                     :exec-args  {:source-paths ["src/my_project/core.cljc"
                                                 "src/my_project/api.cljc"]
                                  :exclude [myproject.api/myfn]}}}}
 ```
 Then run `bb docstring` from your project root.
 
-
+Note that you can name the above example task anything you want. It does not need to be called `docstring`.
 
 
 ## Status / Roadmap

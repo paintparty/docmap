@@ -1,5 +1,5 @@
-(ns docstring.api
-  "API namespace for docstring"
+(ns docmap.api
+  "API namespace for docmap"
   (:require [clojure.string :as string]
             [rewrite-clj.zip :as z]
             [rewrite-clj.node :as n]
@@ -231,18 +231,18 @@
 
 (defn metadata-map->docstring
   "Experimental utility for repl usage.
-   This is also called internally from `docstring.api/docstring`, when docstring
+   This is also called internally from `docmap.api/docstring`, when docstring
    is initiated via a bb task.
 
    Expects a map, usually a metadata map of a function.
 
-   See `docstring.api/docstring` docs for more info on the shape of this map.
+   See `docmap.api/docstring` docs for more info on the shape of this map.
 
    Returns a string intended to serve as the function's docstring.
    
    Resulting docstrings are optimized for consumption by
    [quickdoc](https://github.com/borkdude/quickdoc)."
-  [{:keys [:docstring/template] :as m}]
+  [{:keys [:docmap/template] :as m}]
   (let [sections (->> (or template [:tldr :desc :examples :options])
                       (reduce (partial docsgen-section m) [])
                       #_(map normalize-multi-newlines))]
@@ -450,7 +450,7 @@
 
           "Returns a map of :source-path and :updated-functions."]
    :options [:map
-             [:source-paths {:desc "A vector of file paths representing namespaces to process with docstring."
+             [:source-paths {:desc "A vector of file paths representing namespaces to process with docmap."
                              :example ["src/my_project/core.cljc"
                                        "src/my_project/api.cljc"]}
               [:vector :string]]
@@ -478,10 +478,10 @@
     (println "something went wrong")
     #_(explain-malli (-> docstring var meta :options)
                    opts
-                   {:file-info-str "docstring.api"
+                   {:file-info-str "docmap.api"
                     :preamble-section-label "Message:"
                     :preamble-section-body (bling "An invalid value was supplied to "
-                                                  [:blue "docstring.api/docstrings"])})
+                                                  [:blue "docmap.api/docstrings"])})
     (let [{:keys [source-paths print-report? exclude cljfmt-options]}
           opts
 

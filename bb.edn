@@ -6,21 +6,21 @@
                     :exec-args  {:git/branch   "0.10.0v2"
                                  :github/repo  "https://github.com/paintparty/bling"
                                  :source-paths [
-                                                ;; "dev/docstring/friends.cljc"
-                                                "dev/docstring/sandbox.cljc"
+                                                ;; "dev/docmap/friends.cljc"
+                                                "dev/docmap/sandbox.cljc"
                                                 ]}}
          
-         docstring {:doc        "Invoke docstring/docstring to generate docstrings from function metadata maps"
-                    :extra-deps {io.github.paintparty/docstring {:local/root "."}
+         docstring {:doc        "Invoke docmap.api/docstring to generate docstrings from function metadata maps"
+                    :extra-deps {io.github.paintparty/docmap {:local/root "."}
                                  io.github.paintparty/bling     {:local/root "../bling"}
                                  io.github.paintparty/fireworks {:local/root "../fireworks"}}
-                    :task       (exec 'docstring.api/docstring)
+                    :task       (exec 'docmap.api/docstring)
                     :exec-args  {:source-paths         [
                                                         ;; friends.cljc is the reference example, used for readme
                                                         ;; your probably want to comment out during dev with sanbox.cljc
-                                                        ;; "dev/docstring/friends.cljc"
+                                                        ;; "dev/docmap/friends.cljc"
 
-                                                        ;; sandbox.cljc is for dev of docstring itself
-                                                        "dev/docstring/sandbox.cljc"
+                                                        ;; sandbox.cljc is for dev of docmap itself
+                                                        "dev/docmap/sandbox.cljc"
                                                         ]
                                  :print-report-banner? true}}}}

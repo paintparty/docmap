@@ -18,4 +18,4 @@
 Function.
 
 prints baz
-<p><sub><a href="https://github.com/paintparty/bling/blob/0.10.0v2/dev/docstring/sandbox.cljc#L3-L7">Source</a></sub></p>
+<p><sub><a href="https://github.com/paintparty/bling/blob/0.10.0v2/dev/docmap/sandbox.cljc#L3-L7">Source</a></sub></p>

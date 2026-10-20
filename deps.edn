@@ -10,4 +10,4 @@
                dev.weavejester/cljfmt         {:mvn/version "0.15.6"}}
  :aliases     {:test {:extra-deps {babashka/fs                {:mvn/version "0.5.27"}
                                    nubank/matcher-combinators {:mvn/version "3.9.2"}}}}
- :tools/usage {:ns-default docstring.api}}
+ :tools/usage {:ns-default docmap.api}}
